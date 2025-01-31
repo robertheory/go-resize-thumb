@@ -43,29 +43,34 @@ func processImages(inputDir, outputDir string) {
 
 	var wg sync.WaitGroup
 
+	maxWorkers := 10
+
+	fileChan := make(chan string, maxWorkers)
+
 	for _, file := range files {
-
 		if !file.IsDir() {
-
-			wg.Add(1)
-
 			inputFullPath := filepath.Join(inputDir, file.Name())
-
 			outputFullPath := filepath.Join(outputDir, file.Name())
 
-			go processThumbnail(inputFullPath, outputFullPath, &wg)
+			wg.Add(1)
+			fileChan <- inputFullPath
+
+			go func(inputPath, outputPath string) {
+				defer wg.Done()
+				processThumbnail(inputPath, outputPath)
+				<-fileChan
+			}(inputFullPath, outputFullPath)
 		}
 	}
 
 	wg.Wait()
+	close(fileChan)
 
 	fmt.Println("All images processed successfully")
 
 }
 
-func processThumbnail(inputPath, outputPath string, wg *sync.WaitGroup) {
-
-	defer wg.Done()
+func processThumbnail(inputPath, outputPath string) {
 
 	file, err := os.Open(inputPath)
 
