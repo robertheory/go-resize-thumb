@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/nfnt/resize"
@@ -40,23 +41,31 @@ func processImages(inputDir, outputDir string) {
 		panic(err)
 	}
 
+	var wg sync.WaitGroup
+
 	for _, file := range files {
 
 		if !file.IsDir() {
+
+			wg.Add(1)
 
 			inputFullPath := filepath.Join(inputDir, file.Name())
 
 			outputFullPath := filepath.Join(outputDir, file.Name())
 
-			processThumbnail(inputFullPath, outputFullPath)
+			go processThumbnail(inputFullPath, outputFullPath, &wg)
 		}
 	}
+
+	wg.Wait()
 
 	fmt.Println("All images processed successfully")
 
 }
 
-func processThumbnail(inputPath, outputPath string) {
+func processThumbnail(inputPath, outputPath string, wg *sync.WaitGroup) {
+
+	defer wg.Done()
 
 	file, err := os.Open(inputPath)
 
