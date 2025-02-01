@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var maxWorkers = 10
+
 func main() {
 
 	inputDir := "images"
@@ -19,9 +21,11 @@ func main() {
 
 	loadImages(inputDir, outputDir, &images)
 
-	fmt.Println("Number of images: ", len(images))
+	fmt.Printf("\nNumber of images to process: %d\n", len(images))
 
-	wp := entity.NewWorkerPool(images, 5)
+	fmt.Printf("\n* Max workers: %d *\n", maxWorkers)
+
+	wp := entity.NewWorkerPool(images, maxWorkers)
 
 	wp.Start()
 

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -65,6 +66,8 @@ func (i *ImageFile) Process() error {
 		}
 
 	}
+
+	fmt.Println("- Processed: ", i.inputPath)
 
 	return nil
 }

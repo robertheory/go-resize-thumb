@@ -22,15 +22,13 @@ func NewWorkerPool(files []ImageFile, concurrency int) *WorkerPool {
 }
 
 func (wp *WorkerPool) Start() {
-	fmt.Println("Starting worker pool")
+	fmt.Printf("\n----- Starting worker pool -----\n\n")
 
 	// Add the number of workers to the WaitGroup
 	wp.wg.Add(len(wp.Files))
 
 	// Start the workers
 	for i := 0; i < wp.concurrency; i++ {
-		fmt.Println("Starting worker: ", i+1)
-
 		go wp.worker()
 	}
 
@@ -45,7 +43,7 @@ func (wp *WorkerPool) Start() {
 	// Wait for all workers to finish
 	wp.wg.Wait()
 
-	fmt.Println("All workers have finished")
+	fmt.Printf("\n----- All workers have finished ------\n\n")
 }
 
 func (wp *WorkerPool) worker() {
