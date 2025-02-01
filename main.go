@@ -2,16 +2,10 @@ package main
 
 import (
 	"fmt"
-	"image"
-	"image/jpeg"
-	"image/png"
 	"os"
 	"path/filepath"
-	"strings"
-	"sync"
+	"resize-thumb/internal/entity"
 	"time"
-
-	"github.com/nfnt/resize"
 )
 
 func main() {
@@ -21,13 +15,21 @@ func main() {
 
 	now := time.Now()
 
-	processImages(inputDir, outputDir)
+	images := []entity.ImageFile{}
+
+	loadImages(inputDir, outputDir, &images)
+
+	fmt.Println("Number of images: ", len(images))
+
+	wp := entity.NewWorkerPool(images, 5)
+
+	wp.Start()
 
 	fmt.Println("Time taken to process images: ", time.Since(now).Milliseconds(), "ms")
 
 }
 
-func processImages(inputDir, outputDir string) {
+func loadImages(inputDir string, outputDir string, imagesFiles *[]entity.ImageFile) {
 
 	files, err := os.ReadDir(inputDir)
 
@@ -41,76 +43,15 @@ func processImages(inputDir, outputDir string) {
 		panic(err)
 	}
 
-	var wg sync.WaitGroup
-
-	maxWorkers := 10
-
-	fileChan := make(chan string, maxWorkers)
-
 	for _, file := range files {
 		if !file.IsDir() {
 			inputFullPath := filepath.Join(inputDir, file.Name())
 			outputFullPath := filepath.Join(outputDir, file.Name())
 
-			wg.Add(1)
-			fileChan <- inputFullPath
+			newImageFile := entity.NewImageFile(inputFullPath, outputFullPath)
 
-			go func(inputPath, outputPath string) {
-				defer wg.Done()
-				processThumbnail(inputPath, outputPath)
-				<-fileChan
-			}(inputFullPath, outputFullPath)
+			*imagesFiles = append(*imagesFiles, *newImageFile)
 		}
-	}
-
-	wg.Wait()
-	close(fileChan)
-
-	fmt.Println("All images processed successfully")
-
-}
-
-func processThumbnail(inputPath, outputPath string) {
-
-	file, err := os.Open(inputPath)
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-
-	image, _, err := image.Decode(file)
-
-	if err != nil {
-		panic(err)
-	}
-
-	thumbnail := resize.Resize(100, 0, image, resize.Lanczos3)
-
-	outputFile, err := os.Create(outputPath)
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer outputFile.Close()
-
-	switch strings.ToLower(filepath.Ext(inputPath)) {
-	case ".jpg", ".jpeg":
-		err = jpeg.Encode(outputFile, thumbnail, nil)
-
-		if err != nil {
-			panic(err)
-		}
-
-	case ".png":
-		err = png.Encode(outputFile, thumbnail)
-
-		if err != nil {
-			panic(err)
-		}
-
 	}
 
 }
