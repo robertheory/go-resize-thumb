@@ -21,3 +21,29 @@ This project aims to demonstrate how to resize images to a thumbnail size using 
    5. **WaitGroup**: The project uses the WaitGroup to wait for all the goroutines to finish before exiting the program.
 
    6. **Worker Pool**: The project uses a worker pool to limit the number of goroutines running concurrently.
+
+## Requirements
+
+1. Go 1.16 or later
+
+## Usage
+
+1. Clone the repository:
+
+   ```bash
+   git clone
+   ```
+
+2. Change the directory:
+
+   ```bash
+   cd resize-thumb
+   ```
+
+3. Run the program:
+
+   ```bash
+   go run main.go
+   ```
+
+4. The program will read the images from the `images` directory, resize them to a thumbnail size, and save them to the `thumbnails` directory.
